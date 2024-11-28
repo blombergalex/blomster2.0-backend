@@ -1,6 +1,5 @@
 import { Request, Response, Router } from "express"
 
-
 const getUser = async (req: Request, res: Response) => {
   const {id} = req.params
   // TODO: get user by id
@@ -16,6 +15,16 @@ const editUser = async (req: Request, res: Response) => {
 
 export const userRouter = Router()
 
-userRouter.get('/user/:id', getUser) // view profile
 userRouter.get('/user/:id/edit', editUser) //edit user profile
+userRouter.get('/user/:id', getUser) // view profile
+
+
+// ELLER nåt sånt här enligt web dev simplified ?
+
+// userRouter
+//   .route('/user/:id')
+//   .get(getUser)
+//   .put(editUser) 
+  // .delete(deleteUser)
+
 

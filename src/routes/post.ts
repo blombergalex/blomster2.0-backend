@@ -22,6 +22,6 @@ const createPost = async (req: Request, res: Response) => {
 export const postRouter = Router()
 
 postRouter.get('/posts', getPosts) // show all posts
-postRouter.get('/posts/:id', getPost) // get post by id
 postRouter.get('/create', createPost) // render create post page
 postRouter.get('/posts/:id/edit', getPost) // get post by id for edit page, put method from frontend?
+postRouter.get('/posts/:id', getPost) // get post by id
