@@ -1,4 +1,6 @@
 import { type Request, type Response, Router } from "express";
+import bcrypt from 'bcrypt'
+
 import { User } from "../models/user";
 
 const signUp = async (req: Request, res: Response) => { // has to be async because we await User further down
@@ -25,14 +27,28 @@ const signUp = async (req: Request, res: Response) => { // has to be async becau
     console.error(error);
     res.status(500).send(); // if not use 'send' it will get stuck in loading state
   }
-
-  res.status(200).json([{ title: "sign up" }]);
 };
 
 const logIn = async (req: Request, res: Response) => {
-  // TODO: log in page
+  try {
+    const {username, password} = req.body
+    if (!username || !password) {
+      res.status(400).json({message: 'Username or password is missing'})
+      return
+    }
 
-  res.status(200).json([{ title: "log in" }]);
+    const user = await User.findOne({ username }, '+password' )
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+    res.status(400).json({ message: 'Wrong username or password'})
+    return
+    }
+
+    
+  } catch (error) {
+    console.error(error)
+    res.status(500).send()
+  }
+
 };
 
 export const authRouter = Router();
