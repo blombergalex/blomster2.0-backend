@@ -6,6 +6,7 @@ import mongoose from 'mongoose'
 import 'dotenv/config'
 
 const app = express()
+app.use(express.json())
 
 app.use(postRouter)
 app.use(authRouter)
