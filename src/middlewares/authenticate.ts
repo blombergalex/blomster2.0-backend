@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import { User } from "../models/user";
 
-const authenticate = async (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
