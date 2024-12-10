@@ -1,53 +1,177 @@
-import { Request, Response, Router } from "express"
-import { Post } from "../models/post"
-import { authenticate } from "../middlewares/authenticate"
+import { Request, Response, Router } from "express";
+import { ObjectId, isValidObjectId } from "mongoose";
+import { Post } from "../models/post";
+import { authenticate } from "../middlewares/authenticate";
+
+type AuthorWithUsername = {
+  _id: ObjectId;
+  username: string;
+};
 
 const getPosts = async (req: Request, res: Response) => {
-  // TODO: get posts from database
-  
-  res.status(200).json([{title: 'post one'}, {title: 'post two'}])
-}
-
-const getPost = async (req: Request, res: Response) => {
-  const {id} = req.params
-  //TODO: get post from database by id
-
-  res.status(200).json({title: 'single post by id', id})
-}
-
-const createPost = async (req: Request, res: Response) => {
-  // TODO: post post to database
   try {
-    const {title, content} = req.body
+    const posts = await Post.find().populate('author', 'username')
 
-    if (!title || typeof title !== 'string') {
-      res.status(400).json({message: 'Malformed title'})
-    }
+    res.status(200).json(posts.map((post) => {
+      const author = post.author as unknown as AuthorWithUsername
 
-    if (content !== undefined && typeof content !== 'string') {
-      res.status(400).json({message: 'Malformed content'})
-    }
-
-    const post = await Post.create({
-      title,
-      content,
-      author: req.userId
-    })
-
-    res.status(201).json({ id: post._id })
+      return {
+        id: post._id,
+        title: post.title,
+        content: post.content, // om jag vill visa content på startsidan
+        author: {
+          username: author.username
+        }
+      }
+    }));
 
   } catch (error) {
     console.error(error)
     res.status(500).send()
   }
+};
 
-}
+const getPost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-export const postRouter = Router()
+    if (!isValidObjectId(id)) {
+      res.status(400).json({ message: "Invalid post id" });
+      return;
+    }
 
-postRouter.get('/posts', getPosts) // show all posts
-postRouter.get('/posts/:id', getPost) // get post by id
-postRouter.post('/posts', authenticate, createPost)
+    const post = await Post.findById(id).populate("author", "username");
 
-postRouter.get('/create', createPost) // render create post page
-postRouter.get('/posts/:id/edit', getPost) // get post by id for edit page, put method from frontend?
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    //kommer säkert dyka upp fler fel att hantera
+
+    const author = post.author as unknown as AuthorWithUsername;
+
+    res.status(200).json({
+      id: post._id,
+      title: post.title,
+      content: post.content,
+      author: {
+        id: author._id,
+        username: author.username,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send();
+  }
+};
+
+const createPost = async (req: Request, res: Response) => {
+  try {
+    const { title, content } = req.body;
+
+    if (!title || typeof title !== "string") {
+      res.status(400).json({ message: "Malformed title" });
+      return;
+    }
+
+    if (content !== undefined && typeof content !== "string") {
+      res.status(400).json({ message: "Malformed content" });
+      return;
+    }
+
+    const post = await Post.create({
+      title,
+      content,
+      author: req.userId,
+    });
+
+    res.status(201).json({ id: post._id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send();
+  }
+};
+
+const deletePost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      res.status(400).json({ message: "Invalid post id" });
+      return;
+    }
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    if (post.author.toString() !== req.userId) {
+      res
+        .status(403)
+        .json({ message: "You are not allowed to delete this post" });
+      return;
+    }
+
+    await post.deleteOne();
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send;
+  }
+};
+
+const editPost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      res.status(400).json({ message: "Invalid post id" });
+      return;
+    }
+
+    const post = await Post.findById(id);
+
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    if (post.author.toString() !== req.userId) {
+      res
+        .status(403)
+        .json({ message: "You are not allowed to edit this post" });
+      return;
+    }
+
+    const { title, content } = req.body;
+
+    if (title !== undefined && typeof title !== "string") {
+      res.status(400).json({ message: "Malformed title" });
+    }
+
+    if (content !== undefined && typeof content !== "string") {
+      res.status(400).json({ message: "Malformed content" });
+    }
+
+    await post.updateOne({
+      title,
+      content
+    }) 
+    res.status(200).json({message: 'Post updated successfully'})
+  } catch (error) {
+    console.error(error);
+    res.status(500).send;
+  }
+};
+
+export const postRouter = Router();
+
+postRouter.get("/posts", getPosts); // show all posts
+postRouter.get("/posts/:id", getPost); // get post by id
+postRouter.post("/posts", authenticate, createPost); //skicka med authenticate för man måste vara inloggad för att kunna radera
+postRouter.delete("/posts/:id", authenticate, deletePost);
+postRouter.put("/posts/:id", authenticate, editPost)

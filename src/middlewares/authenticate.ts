@@ -23,7 +23,7 @@ export const authenticate = async (
       typeof decodedToken === "string" ||
       !(await User.exists({ _id: decodedToken.userId }))
     ) {
-      res.status(401).json({message: 'unauthenticated'})
+      res.status(401).json({message: 'User not authenticated'})
       return
     }
 
