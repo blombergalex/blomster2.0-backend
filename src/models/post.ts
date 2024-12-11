@@ -28,10 +28,10 @@ type TPost = Document & {
   title: string;
   content: string;
   author: Types.ObjectId;
-  comments: TComment[],
-  upvotes: Types.ObjectId[],
-  downvotes: Types.ObjectId[],
-  score: number,
+  comments: TComment[];
+  upvotes: Types.ObjectId[];
+  downvotes: Types.ObjectId[];
+  score: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -56,19 +56,19 @@ const postSchema = new Schema(
     upvotes: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'User'
-      }
+        ref: "User",
+      },
     ],
     downvotes: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'User'
-      }
+        ref: "User",
+      },
     ],
     score: {
       type: Number,
       default: 0,
-    }
+    },
   },
   {
     timestamps: true,
@@ -76,3 +76,4 @@ const postSchema = new Schema(
 );
 
 export const Post = model<TPost>("Post", postSchema);
+export const Comment = model<TComment>("Comment", commentSchema);

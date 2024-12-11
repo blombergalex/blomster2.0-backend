@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { ObjectId, isValidObjectId } from "mongoose";
-import { Post } from "../models/post";
+import { Post, Comment } from "../models/post";
 import { authenticate } from "../middlewares/authenticate";
 
 type AuthorWithUsername = {
@@ -10,24 +10,25 @@ type AuthorWithUsername = {
 
 const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await Post.find().populate('author', 'username')
+    const posts = await Post.find().populate("author", "username");
 
-    res.status(200).json(posts.map((post) => {
-      const author = post.author as unknown as AuthorWithUsername
+    res.status(200).json(
+      posts.map((post) => {
+        const author = post.author as unknown as AuthorWithUsername;
 
-      return {
-        id: post._id,
-        title: post.title,
-        content: post.content, // om jag vill visa content på startsidan
-        author: {
-          username: author.username
-        }
-      }
-    }));
-
+        return {
+          id: post._id,
+          title: post.title,
+          content: post.content, // om jag vill visa content på startsidan
+          author: {
+            username: author.username,
+          },
+        };
+      })
+    );
   } catch (error) {
-    console.error(error)
-    res.status(500).send()
+    console.error(error);
+    res.status(500).send();
   }
 };
 
@@ -159,9 +160,29 @@ const editPost = async (req: Request, res: Response) => {
 
     await post.updateOne({
       title,
-      content
-    }) 
-    res.status(200).json({message: 'Post updated successfully'})
+      content,
+    });
+    res.status(200).json({ message: "Post updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send;
+  }
+};
+
+const createComment = async (req: Request, res: Response) => {
+  try {
+    const {content} = req.body
+
+    if (!content || typeof content !== 'string') {
+      res.status(400).json({message: 'Malformed comment content'})
+    }
+
+    const comment = await Comment.create({
+      content,
+      author: req.userId,
+    });
+
+    res.status(201).json({ id: comment._id });
   } catch (error) {
     console.error(error);
     res.status(500).send;
@@ -172,6 +193,7 @@ export const postRouter = Router();
 
 postRouter.get("/posts", getPosts); // show all posts
 postRouter.get("/posts/:id", getPost); // get post by id
+postRouter.get("/posts/:id", authenticate, createComment); 
 postRouter.post("/posts", authenticate, createPost); //skicka med authenticate för man måste vara inloggad för att kunna radera
 postRouter.delete("/posts/:id", authenticate, deletePost);
-postRouter.put("/posts/:id", authenticate, editPost)
+postRouter.put("/posts/:id", authenticate, editPost);

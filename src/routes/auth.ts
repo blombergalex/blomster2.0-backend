@@ -48,7 +48,7 @@ const logIn = async (req: Request, res: Response) => {
       { userId: user._id },
       process.env.JWT_SECRET!,
       {
-        expiresIn: "1h", // VG-krav att fixa en refreshToken som hjälper användaren att hämta ny accessToken innan han loggas ut
+        expiresIn: "1h",
       }
     );
 
