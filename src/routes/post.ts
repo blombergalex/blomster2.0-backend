@@ -171,10 +171,23 @@ const editPost = async (req: Request, res: Response) => {
 
 const createComment = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
     const {content} = req.body
 
     if (!content || typeof content !== 'string') {
       res.status(400).json({message: 'Malformed comment content'})
+    }
+
+    if (!isValidObjectId(id)) {
+      res.status(400).json({ message: "Invalid post id" });
+      return
+    }
+
+    const post = await Post.findById(id)
+
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
     }
 
     const comment = await Comment.create({
@@ -182,13 +195,14 @@ const createComment = async (req: Request, res: Response) => {
       author: req.userId,
     });
 
+    post.comments.push(comment)
+    await post.save()
+
     res.status(201).json({ id: comment._id }); // vad som skickas tillbaka vid ok
   } catch (error) {
     console.error(error);
     res.status(500).send;
   }
-
-  // create create Comment action for it to work
 };
 
 export const postRouter = Router();
