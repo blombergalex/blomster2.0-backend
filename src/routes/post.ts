@@ -84,7 +84,7 @@ const createPost = async (req: Request, res: Response) => {
     const post = await Post.create({
       title,
       content,
-      author: req.userId,
+      author: req.userId, // vi har tillgång till userId genom authenticate middleware
     });
 
     res.status(201).json({ id: post._id });
@@ -182,18 +182,20 @@ const createComment = async (req: Request, res: Response) => {
       author: req.userId,
     });
 
-    res.status(201).json({ id: comment._id });
+    res.status(201).json({ id: comment._id }); // vad som skickas tillbaka vid ok
   } catch (error) {
     console.error(error);
     res.status(500).send;
   }
+
+  // create create Comment action for it to work
 };
 
 export const postRouter = Router();
 
 postRouter.get("/posts", getPosts); // show all posts
 postRouter.get("/posts/:id", getPost); // get post by id
-postRouter.get("/posts/:id", authenticate, createComment); 
+postRouter.post("/posts/:id", authenticate, createComment); 
 postRouter.post("/posts", authenticate, createPost); //skicka med authenticate för man måste vara inloggad för att kunna radera
 postRouter.delete("/posts/:id", authenticate, deletePost);
 postRouter.put("/posts/:id", authenticate, editPost);
