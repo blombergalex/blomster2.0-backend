@@ -60,6 +60,7 @@ const getPost = async (req: Request, res: Response) => {
         id: author._id,
         username: author.username,
       },
+      comments: post.comments,
     });
   } catch (error) {
     console.error(error);
@@ -208,8 +209,8 @@ const createComment = async (req: Request, res: Response) => {
 export const postRouter = Router();
 
 postRouter.get("/posts", getPosts); // show all posts
-postRouter.get("/posts/:id", getPost); // get post by id
-postRouter.post("/posts/:id", authenticate, createComment); 
+postRouter.get("/posts/:id", getPost); // get post by id - varför funkar inte i postman? "invalid post id"
+postRouter.post("/posts/:id", authenticate, createComment);  // samma fel som ovan ?
 postRouter.post("/posts", authenticate, createPost); //skicka med authenticate för man måste vara inloggad för att kunna radera
 postRouter.delete("/posts/:id", authenticate, deletePost);
 postRouter.put("/posts/:id", authenticate, editPost);
