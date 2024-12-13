@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Request, response, Response, Router } from "express";
 import { ObjectId, isValidObjectId } from "mongoose";
 import { Post, Comment } from "../models/post";
 import { authenticate } from "../middlewares/authenticate";
@@ -10,22 +10,41 @@ type AuthorWithUsername = {
 
 const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await Post.find().populate("author", "username");
+    const limit = parseInt(req.query.limit?.toString() || "10");
+    const page = parseInt(req.query.page?.toString() || "1");
 
-    res.status(200).json(
-      posts.map((post) => {
-        const author = post.author as unknown as AuthorWithUsername;
+    if (isNaN(page) || isNaN(limit)) {
+      res.status(400).json({
+        message: "Limit and page has to be valid numbers",
+      });
+      return;
+    }
 
-        return {
-          id: post._id,
-          title: post.title,
-          content: post.content, // om jag vill visa content på startsidan
-          author: {
-            username: author.username,
-          },
-        };
-      })
-    );
+    const posts = await Post.find()
+      .populate("author", "username")
+      .skip(limit * (page - 1))
+      .limit(limit);
+
+    const responsePosts = posts.map((post) => {
+      const author = post.author as unknown as AuthorWithUsername;
+
+      return {
+        id: post._id,
+        title: post.title,
+        content: post.content, // om jag vill visa content på startsidan
+        author: {
+          username: author.username,
+        },
+      };
+    })
+
+    const totalCount = await Post.countDocuments()
+    const totalPages = Math.ceil(totalCount / limit)
+
+    res.status(200).json({
+      posts: responsePosts,
+      nextPage: page + 1 < totalPages ? page + 1 : null,
+  });
   } catch (error) {
     console.error(error);
     res.status(500).send();
@@ -173,18 +192,18 @@ const editPost = async (req: Request, res: Response) => {
 const createComment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const {content} = req.body
+    const { content } = req.body;
 
-    if (!content || typeof content !== 'string') {
-      res.status(400).json({message: 'Malformed comment content'})
+    if (!content || typeof content !== "string") {
+      res.status(400).json({ message: "Malformed comment content" });
     }
 
     if (!isValidObjectId(id)) {
       res.status(400).json({ message: "Invalid post id" });
-      return
+      return;
     }
 
-    const post = await Post.findById(id)
+    const post = await Post.findById(id);
 
     if (!post) {
       res.status(404).json({ message: "Post not found" });
@@ -196,8 +215,8 @@ const createComment = async (req: Request, res: Response) => {
       author: req.userId,
     });
 
-    post.comments.push(comment)
-    await post.save()
+    post.comments.push(comment);
+    await post.save();
 
     res.status(201).json({ id: comment._id });
   } catch (error) {
@@ -211,6 +230,6 @@ export const postRouter = Router();
 postRouter.get("/posts", getPosts);
 postRouter.get("/posts/:id", getPost);
 postRouter.post("/posts/:id", authenticate, createComment);
-postRouter.post("/posts", authenticate, createPost); 
+postRouter.post("/posts", authenticate, createPost);
 postRouter.delete("/posts/:id", authenticate, deletePost);
 postRouter.put("/posts/:id", authenticate, editPost);
