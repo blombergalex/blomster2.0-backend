@@ -43,7 +43,7 @@ const getPosts = async (req: Request, res: Response) => {
 
     res.status(200).json({
       posts: responsePosts,
-      nextPage: page + 1 < totalPages ? page + 1 : null,
+      nextPage: page + 1 <= totalPages ? page + 1 : null,
   });
   } catch (error) {
     console.error(error);
