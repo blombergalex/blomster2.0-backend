@@ -35,6 +35,9 @@ const getPosts = async (req: Request, res: Response) => {
         author: {
           username: author.username,
         },
+        score: post.score,
+        upvotes: post.upvotes,
+        downvotes: post.downvotes,
       };
     })
 
