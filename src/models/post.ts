@@ -107,7 +107,15 @@ postSchema.method('downvote', function (this: TPost, userId: string) {
     this.upvotes.pull(userObjectId)
   }
 
-  this.upvotes.push(userObjectId)
+  this.downvotes.push(userObjectId)
+})
+
+postSchema.pre('save', function (next) {
+  if (this.isModified('upvotes') || this.isModified('downvotes')) {
+    this.score = this.upvotes.length - this.downvotes.length
+  }
+
+  next()
 })
 
 type PostModel = Model<TPost, {}, PostMethods>
