@@ -191,20 +191,21 @@ const editPost = async (req: Request, res: Response) => {
 
 const createComment = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; //id som kommer in genom requesten är undefined!
     const { content } = req.body;
 
     if (!content || typeof content !== "string") {
       res.status(400).json({ message: "Malformed comment content" });
     }
 
-    if (!id || typeof id === undefined) {
-      res.status(400).json({message: 'Could not get post id'})
-    }
+    // if (!id || typeof id == undefined) {
+    //   res.status(400).json({message: 'Could not get post id'}) // varför kastas inte detta fel? id är ju undefined
+    // }
 
     if (!isValidObjectId(id)) {
       res.status(400).json({ message: "Invalid post id" }); // I get this error 
       console.log('id: ', id) // id is undefined
+      console.log('req.params: ', req.params)
       return;
     }
 
@@ -234,7 +235,7 @@ export const postRouter = Router();
 
 postRouter.get("/posts", getPosts);
 postRouter.get("/posts/:id", getPost);
-postRouter.post("/posts/:id", authenticate, createComment);
+postRouter.post("/post/:id", authenticate, createComment);
 postRouter.post("/posts", authenticate, createPost);
 postRouter.delete("/posts/:id", authenticate, deletePost);
 postRouter.put("/posts/:id", authenticate, editPost);
