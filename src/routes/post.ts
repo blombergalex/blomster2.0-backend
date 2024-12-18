@@ -191,26 +191,21 @@ const editPost = async (req: Request, res: Response) => {
 
 const createComment = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params; //id som kommer in genom requesten är undefined!
+    const { id } = req.params; 
     const { content } = req.body;
-
+    
     if (!content || typeof content !== "string") {
       res.status(400).json({ message: "Malformed comment content" });
     }
 
-    // if (!id || typeof id == undefined) {
-    //   res.status(400).json({message: 'Could not get post id'}) // varför kastas inte detta fel? id är ju undefined
-    // }
-
     if (!isValidObjectId(id)) {
-      res.status(400).json({ message: "Invalid post id" }); // I get this error 
-      console.log('id: ', id) // id is undefined
-      console.log('req.params: ', req.params)
+      res.status(400).json({ message: "Invalid post id" });
+      console.log('req.params: ', req.params) 
       return;
     }
 
     const post = await Post.findById(id);
-
+    
     if (!post) {
       res.status(404).json({ message: "Post not found" });
       return;
