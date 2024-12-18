@@ -198,8 +198,13 @@ const createComment = async (req: Request, res: Response) => {
       res.status(400).json({ message: "Malformed comment content" });
     }
 
+    if (!id || typeof id === undefined) {
+      res.status(400).json({message: 'Could not get post id'})
+    }
+
     if (!isValidObjectId(id)) {
-      res.status(400).json({ message: "Invalid post id" });
+      res.status(400).json({ message: "Invalid post id" }); // I get this error 
+      console.log('id: ', id) // id is undefined
       return;
     }
 
