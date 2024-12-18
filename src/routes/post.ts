@@ -219,10 +219,14 @@ const createComment = async (req: Request, res: Response) => {
     post.comments.push(comment);
     await post.save();
 
+    console.log("Comment created successfully:", comment._id);
+
     res.status(201).json({ id: comment._id });
   } catch (error) {
-    console.error(error);
+    console.error("Unexpected error in createComment:", error);
     res.status(500).send;
+    console.log("Request params:", req.params);
+    console.log("Request body:", req.body);
   }
 };
 
