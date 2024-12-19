@@ -190,7 +190,6 @@ const editPost = async (req: Request, res: Response) => {
 const createComment = async (req: Request, res: Response) => {
   try {
     const { content } = req.body;
-    const { post_id } = req.body.post_id;
     
     if (!content || typeof content !== "string") {
       res.status(400).json({ message: "Malformed comment content" });
@@ -225,6 +224,16 @@ const createComment = async (req: Request, res: Response) => {
   }
 };
 
+const deleteComment = async (req: Request, res: Response) => {
+  const {comment} = req.params
+
+
+  console.log('comment id: ', req.params.commentId)
+  console.log('post id: ', req.params.id)
+
+  
+}
+
 export const postRouter = Router();
 
 postRouter.get("/posts", getPosts);
@@ -232,4 +241,5 @@ postRouter.get("/posts/:id", getPost);
 postRouter.post("/post/:id", authenticate, createComment);
 postRouter.post("/posts", authenticate, createPost);
 postRouter.delete("/posts/:id", authenticate, deletePost);
+postRouter.delete("/post/:id/:commentId", authenticate, deleteComment);
 postRouter.put("/posts/:id", authenticate, editPost);
