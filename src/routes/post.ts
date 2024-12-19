@@ -31,7 +31,7 @@ const getPosts = async (req: Request, res: Response) => {
       return {
         id: post._id,
         title: post.title,
-        content: post.content, // om jag vill visa content på startsidan
+        content: post.content,
         author: {
           username: author.username,
         },
@@ -189,7 +189,6 @@ const editPost = async (req: Request, res: Response) => {
 
 const createComment = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params; 
     const { content } = req.body;
     const { post_id } = req.body.post_id;
     
@@ -199,10 +198,6 @@ const createComment = async (req: Request, res: Response) => {
 
     if (!isValidObjectId(req.body.post_id)) {
       res.status(400).json({ message: "Invalid post id" });
-      console.log('req.params: ', req.params) 
-      console.log("Request body:", req.body); 
-      console.log('Req body post_id: ', req.body.post_id)
-      console.log('post_id: ', post_id)
       return;
     }
 
