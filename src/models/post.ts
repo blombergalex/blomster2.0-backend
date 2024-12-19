@@ -5,6 +5,7 @@ type TComment = Document & {
   author: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  id: string; //add bc needed to get comment in post route
 };
 
 const commentSchema = new Schema(

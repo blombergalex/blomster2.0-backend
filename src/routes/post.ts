@@ -1,4 +1,4 @@
-import { Request, response, Response, Router } from "express";
+import { Request, Response, Router } from "express";
 import { ObjectId, isValidObjectId } from "mongoose";
 import { Post, Comment } from "../models/post";
 import { authenticate } from "../middlewares/authenticate";
@@ -225,13 +225,47 @@ const createComment = async (req: Request, res: Response) => {
 };
 
 const deleteComment = async (req: Request, res: Response) => {
-  const {comment} = req.params
+  try {
+    console.log('comment id: ', req.params.commentId)
+    console.log('post id: ', req.params.id)
 
+    if (!isValidObjectId(req.params.commentId)) {
+      res.status(400).json({message:'Invalid comment id'})
+      return;
+    }
 
-  console.log('comment id: ', req.params.commentId)
-  console.log('post id: ', req.params.id)
+    if (!isValidObjectId(req.params.id)) {
+      res.status(400).json({message:'Invalid post id'})
+      return;
+    }
 
-  
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    const comment = post.comments.id; 
+    
+    if (!comment) {
+      res.status(404).json({ message: "Comment not found" }); // slår på denna fast kommentar finns i mongo och frontend
+      return;
+    }
+
+    if ( comment.author.toString() !== req.userId ) { // lägg till or post.author !== user Id så både comment och post author kan radera
+      res
+        .status(403)
+        .json({ message: "You are not allowed to delete this post" });
+      return;
+    }
+
+    await comment.deleteOne();
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error(error)
+    res.status(500).send;
+  }
 }
 
 export const postRouter = Router();
