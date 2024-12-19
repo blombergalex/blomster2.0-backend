@@ -5,8 +5,6 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user";
 
 const signUp = async (req: Request, res: Response) => {
-  // has to be async because we await User further down
-  // TODO: sign up user page
   try {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -14,19 +12,18 @@ const signUp = async (req: Request, res: Response) => {
       return;
     }
 
-    const existingUser = await User.findOne({ username }); // to find user with specific username
+    const existingUser = await User.findOne({ username });
     if (existingUser) {
       res.status(400).json({ message: "Username already taken" });
       return;
     }
 
-    const user = new User({ username, password }); //creating user locally
-    await user.save(); // saving user to database
+    const user = new User({ username, password }); 
+    await user.save(); 
     res.status(201).json({ message: "Registration successful" });
   } catch (error) {
-    // to catch 500 errors
     console.error(error);
-    res.status(500).send(); // if not use 'send' it will get stuck in loading state
+    res.status(500).send(); 
   }
 };
 

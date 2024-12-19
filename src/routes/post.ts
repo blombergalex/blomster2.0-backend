@@ -67,8 +67,6 @@ const getPost = async (req: Request, res: Response) => {
       return;
     }
 
-    //kommer säkert dyka upp fler fel att hantera
-
     const author = post.author as unknown as AuthorWithUsername;
 
     res.status(200).json({
@@ -193,18 +191,22 @@ const createComment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; 
     const { content } = req.body;
+    const { post_id } = req.body.post_id;
     
     if (!content || typeof content !== "string") {
       res.status(400).json({ message: "Malformed comment content" });
     }
 
-    if (!isValidObjectId(id)) {
+    if (!isValidObjectId(req.body.post_id)) {
       res.status(400).json({ message: "Invalid post id" });
       console.log('req.params: ', req.params) 
+      console.log("Request body:", req.body); 
+      console.log('Req body post_id: ', req.body.post_id)
+      console.log('post_id: ', post_id)
       return;
     }
 
-    const post = await Post.findById(id);
+    const post = await Post.findById(req.body.post_id);
     
     if (!post) {
       res.status(404).json({ message: "Post not found" });
@@ -225,8 +227,6 @@ const createComment = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Unexpected error in createComment:", error);
     res.status(500).send;
-    console.log("Request params:", req.params);
-    console.log("Request body:", req.body);
   }
 };
 
