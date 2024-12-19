@@ -27,6 +27,16 @@ const signUp = async (req: Request, res: Response) => {
   }
 };
 
+const token = async (req, Request, res: Response) => {
+  try {
+    const refreshToken = req.body.token
+  
+  } catch (error) {
+    console.error(error)
+    res.status(500).send()
+  }
+}
+
 const logIn = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
@@ -41,15 +51,26 @@ const logIn = async (req: Request, res: Response) => {
       return;
     }
 
-    const accessToken = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: "1h",
-      }
-    );
+    
+    const accessToken = () => {
+      jwt.sign(
+        { userId: user._id },
+        process.env.JWT_SECRET!,
+        {
+          expiresIn: "15s",
+        }
+      );
+    }
+    
+    // const accessToken = generateAccessToken()
 
-    res.status(200).json({ accessToken, userId: user._id });
+    const refreshtoken = jwt.sign(
+      {userId: user._id},
+      process.env.JWT_REFRESH!,
+    )
+
+    // res.status(200).json({ accessToken, userId: user._id });
+    res.status(200).json({accessToken, refreshtoken, userId:user._id})  
   } catch (error) {
     console.error(error);
     res.status(500).send();
@@ -60,4 +81,4 @@ export const authRouter = Router();
 
 authRouter.post("/sign-up", signUp); // när vi gör en post request på denna route, kör signUp
 authRouter.post("/log-in", logIn); // vid post request på /log-in, kör logIn.
-
+authRouter.post("/token", token) // post request to token gets refresh token
