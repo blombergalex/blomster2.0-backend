@@ -225,11 +225,6 @@ const createComment = async (req: Request, res: Response) => {
 
 const deleteComment = async (req: Request, res: Response) => {
   try {
-    console.log('comment id: ', req.params.commentId)
-    console.log('post id: ', req.params.id)
-
-    const commentId = req.params.commentId
-    //  id of comment to delete
     if (!isValidObjectId(req.params.commentId)) {
       res.status(400).json({ message: 'Invalid comment id' })
       return
@@ -247,24 +242,25 @@ const deleteComment = async (req: Request, res: Response) => {
       return
     }
 
-    const comments = post.comments
-    console.log('comments: ', comments)
     const comment = await post.comments.id(req.params.commentId)
 
     console.log('comment findById: ', comment)
+    console.log('PostAuthorId: ', post.author.toString())
 
     if (!comment) {
       res.status(404).json({ message: 'Comment not found' })
       return
     }
 
-    //   if (comment.author.toString() !== req.userId) {
-    //     // lägg till or post.author !== user Id så både comment och post author kan radera
-    //     res
-    //       .status(403)
-    //       .json({ message: 'You are not allowed to delete this post' })
-    //     return
-    //   }
+    if (
+      comment.author.toString() !== req.userId &&
+      post.author.toString() !== req.userId
+    ) {
+      res
+        .status(403)
+        .json({ message: 'You are not allowed to delete this comment' })
+      return
+    }
 
     await comment.deleteOne()
     await post.save()
