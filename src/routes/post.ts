@@ -213,8 +213,10 @@ const createComment = async (req: Request, res: Response) => {
 
     console.log('Comment created successfully')
 
-    // res.status(201).json({ id: comment._id })
-    res.status(201).json({ message: 'Comment created successfully' })
+    const newComment = post.comments[post.comments.length - 1]
+    console.log('New Comment ID:', newComment._id)
+
+    res.status(201).json({ id: newComment._id })
   } catch (error) {
     console.error('Unexpected error in createComment:', error)
     res.status(500).send
@@ -239,7 +241,6 @@ const deleteComment = async (req: Request, res: Response) => {
     }
 
     const post = await Post.findById(req.params.id)
-    // console.log(post)
 
     if (!post) {
       res.status(404).json({ message: 'Post not found' })
@@ -247,11 +248,10 @@ const deleteComment = async (req: Request, res: Response) => {
     }
 
     const comments = post.comments
-    console.log('comments: ', comments) // logs array of comments
-
+    console.log('comments: ', comments)
     const comment = await post.comments.id(req.params.commentId)
 
-    console.log('comment findById: ', comment) // logs null
+    console.log('comment findById: ', comment)
 
     if (!comment) {
       res.status(404).json({ message: 'Comment not found' })
@@ -267,6 +267,7 @@ const deleteComment = async (req: Request, res: Response) => {
     //   }
 
     await comment.deleteOne()
+    await post.save()
     res.status(200).json({ message: 'Comment deleted successfully' })
   } catch (error) {
     console.error(error)
