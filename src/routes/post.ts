@@ -20,10 +20,31 @@ const getPosts = async (req: Request, res: Response) => {
       return;
     }
 
-    const posts = await Post.find()
-      .populate("author", "username")
-      .skip(limit * (page - 1))
-      .limit(limit);
+    // const posts = await Post.find()
+    //   .populate("author", "username")
+    //   .skip(limit * (page - 1))
+    //   .limit(limit);
+
+    const posts = await Post.aggregate([
+      { $skip: limit * (page - 1) },
+      { $limit: limit},
+      { 
+        $lookup: {
+          from: 'users',
+          localField: 'author',
+          foreignField: '_id',
+          pipeline: [
+            {
+              $project: {
+                username: 1, 
+              }
+            }
+          ],
+          as: 'author'
+        }
+      },
+      { $unwind: '$author'}
+    ])
 
     const responsePosts = posts.map((post) => {
       const author = post.author as unknown as AuthorWithUsername;
