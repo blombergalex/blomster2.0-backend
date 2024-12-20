@@ -1,12 +1,11 @@
-import { type Document, model, Schema, type Types } from "mongoose";
+import { type Document, model, Schema, type Types } from 'mongoose'
 
 type TComment = Document & {
-  content: string;
-  author: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-  id: string; //add bc needed to get comment in post route
-};
+  content: string
+  author: Types.ObjectId
+  createdAt: Date
+  updatedAt: Date
+}
 
 const commentSchema = new Schema(
   {
@@ -16,26 +15,26 @@ const commentSchema = new Schema(
     },
     author: {
       type: Schema.Types.ObjectId,
-      ref: "User", // the reference tells what model the author refers to
+      ref: 'User', // the reference tells what model the author refers to
       required: true,
     },
   },
   {
     timestamps: true,
   }
-);
+)
 
 type TPost = Document & {
-  title: string;
-  content: string;
-  author: Types.ObjectId;
-  comments: TComment[];
-  upvotes: Types.ObjectId[];
-  downvotes: Types.ObjectId[];
-  score: number;
-  createdAt: Date;
-  updatedAt: Date;
-};
+  title: string
+  content: string
+  author: Types.ObjectId
+  comments: Types.DocumentArray<TComment>
+  upvotes: Types.ObjectId[]
+  downvotes: Types.ObjectId[]
+  score: number
+  createdAt: Date
+  updatedAt: Date
+}
 
 const postSchema = new Schema(
   {
@@ -50,20 +49,20 @@ const postSchema = new Schema(
     },
     author: {
       type: Schema.Types.ObjectId,
-      ref: "User", // the reference tells what model the author refers to
+      ref: 'User', // the reference tells what model the author refers to
       required: true,
     },
     comments: [commentSchema], //en array med kommentarer
     upvotes: [
       {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     downvotes: [
       {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     score: {
@@ -74,7 +73,7 @@ const postSchema = new Schema(
   {
     timestamps: true,
   }
-);
+)
 
-export const Post = model<TPost>("Post", postSchema);
-export const Comment = model<TComment>("Comment", commentSchema);
+export const Post = model<TPost>('Post', postSchema)
+// export const Comment = model<TComment>('Comment', commentSchema)
