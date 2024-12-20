@@ -26,25 +26,62 @@ const getPosts = async (req: Request, res: Response) => {
     //   .limit(limit);
 
     const posts = await Post.aggregate([
+      {
+        $addFields: {
+          sortValue: {
+            $divide: [
+              // value 1: score
+              // add 1 to view 0 as positive score
+              {
+                $add: ["$score", 1],
+              },
+              // value 2: age
+              {
+                $pow: [
+                  {
+                    $add: [
+                      {
+                        $divide: [
+                          { $subtract: [new Date(), "$createdAt"] },
+                          1000 * 60 * 60, // convert age to hours
+                        ],
+                      },
+                      // add 1 to avoid division with 0
+                      1,
+                    ],
+                  },
+                  // recency weight
+                  // the higher the number, the faster old posts will loose ranking
+                  1.5,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      // sort in descending order by sort value
+      { $sort: {sortValue: -1}},
       { $skip: limit * (page - 1) },
-      { $limit: limit},
-      { 
+      { $limit: limit },
+      {
         $lookup: {
-          from: 'users',
-          localField: 'author',
-          foreignField: '_id',
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
           pipeline: [
             {
               $project: {
-                username: 1, 
-              }
-            }
+                username: 1,
+              },
+            },
           ],
-          as: 'author'
-        }
+          as: "author",
+        },
       },
-      { $unwind: '$author'}
-    ])
+      { $unwind: "$author" },
+    ]);
+
+    console.log(posts.map((post) => post.sortValue))
 
     const responsePosts = posts.map((post) => {
       const author = post.author as unknown as AuthorWithUsername;
@@ -60,15 +97,15 @@ const getPosts = async (req: Request, res: Response) => {
         upvotes: post.upvotes,
         downvotes: post.downvotes,
       };
-    })
+    });
 
-    const totalCount = await Post.countDocuments()
-    const totalPages = Math.ceil(totalCount / limit)
+    const totalCount = await Post.countDocuments();
+    const totalPages = Math.ceil(totalCount / limit);
 
     res.status(200).json({
       posts: responsePosts,
       nextPage: page + 1 <= totalPages ? page + 1 : null,
-  });
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send();
